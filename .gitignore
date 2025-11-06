@@ -20,6 +20,14 @@ project/plugins/project/
 # Used by previous versions of JEnv
 .jenv-version
 
+# VSCode
+.vscode/
+
+# Metals
+.bloop/
+.metals/
+metals.sbt
+
 ### JetBrains template
 
 .idea/
