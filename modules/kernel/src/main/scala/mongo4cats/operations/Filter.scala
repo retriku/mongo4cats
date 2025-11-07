@@ -37,9 +37,9 @@ trait Filter {
     * @return
     *   the filter
     */
-  def and(anotherFilter: Filter): Filter
+  def and(anotherFilter: Filter*): Filter
 
-  def &&(anotherFilter: Filter): Filter = and(anotherFilter)
+  def &&(anotherFilter: Filter*): Filter = and(anotherFilter:_*)
 
   /** Creates a filter that preforms a logical OR of the provided filter.
     *
@@ -48,9 +48,9 @@ trait Filter {
     * @return
     *   the filter
     */
-  def or(anotherFilter: Filter): Filter
+  def or(anotherFilter: Filter*): Filter
 
-  def ||(anotherFilter: Filter): Filter = or(anotherFilter)
+  def ||(anotherFilter: Filter*): Filter = or(anotherFilter:_*)
 
   /** Creates a filter that matches all documents that do not match the passed in filter. Lifts the current filter to create a valid "\$not"
     * query:
@@ -71,7 +71,7 @@ trait Filter {
     * @return
     *   the filter
     */
-  def nor(anotherFilter: Filter): Filter
+  def nor(anotherFilter: Filter*): Filter
 
   private[mongo4cats] def toBson: Bson
   private[mongo4cats] def filter: Bson
@@ -645,18 +645,19 @@ object Filter extends AsJava {
 final private case class FilterBuilder(
     override val filter: Bson
 ) extends Filter {
+  import scala.jdk.CollectionConverters._
 
   override def not: Filter =
     FilterBuilder(Filters.not(filter))
 
-  override def and(anotherFilter: Filter): Filter =
-    FilterBuilder(Filters.and(filter, anotherFilter.filter))
+  override def and(anotherFilter: Filter*): Filter =
+    FilterBuilder(Filters.and(anotherFilter.map(_.filter).prepended(filter).asJava))
 
-  override def or(anotherFilter: Filter): Filter =
-    FilterBuilder(Filters.or(filter, anotherFilter.filter))
+  override def or(anotherFilter: Filter*): Filter =
+    FilterBuilder(Filters.or(anotherFilter.map(_.filter).prepended(filter).asJava))
 
-  override def nor(anotherFilter: Filter): Filter =
-    FilterBuilder(Filters.nor(filter, anotherFilter.filter))
+  override def nor(anotherFilter: Filter*): Filter =
+    FilterBuilder(Filters.nor(anotherFilter.map(_.filter).prepended(filter).asJava))
 
   override private[mongo4cats] def toBson = filter
 
